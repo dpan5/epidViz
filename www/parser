@@ -18,8 +18,7 @@ function queryDisease(disease) {
               if (content.match(/Page \d of \d/)) {
                   var page = content.match(/Page \d of \d/);
                   numberOfPage = page[0].match(/\d/g)[1];
-                  alert(numberOfPage);
-                  //alert(content);
+                
               }
               //parse html into cases, put unparse cases into results array
               //22 Apr 2015 </a><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">Avian influenza (92): Niger (MA) poultry, HPAI H5N1, OIE 20150422.3314939&lt;\/a&gt;&lt;\/li&gt;\n</a></li><li><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">
@@ -69,7 +68,7 @@ function queryDisease(disease) {
                       
                       
                   }
-                  //alert(cases.toString);
+                  
 
            
           } else {
@@ -90,5 +89,4 @@ function queryDisease(disease) {
     data = data.replace(/<script.*\/>/,'');
     return data;
   }
-alert('test');
 queryDisease('h5n1');
