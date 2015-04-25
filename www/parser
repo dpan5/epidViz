@@ -1,0 +1,94 @@
+function queryDisease(disease) {
+    var url = 'http://www.promedmail.org/ajax/runSearch.php?kwby1=summary&search=' + disease + '&show_us=1&date1=&date2=&feed_id=1';
+    $.getJSON("http://query.yahooapis.com/v1/public/yql?"+
+                "q=select%20*%20from%20html%20where%20url%3D%22"+
+                encodeURIComponent(url)+
+                "%22&format=xml'&callback=?",
+        // this function gets the data from the successful 
+        // JSON-P call
+        function(data){
+          
+          var numberOfPage;
+          var cases = [];
+          // if there is data, filter it and render it out
+          if(data.results[0]){
+              //var content = filterData(data.results[0]);
+              var content = data.results[0];
+              //get result page count
+              if (content.match(/Page \d of \d/)) {
+                  var page = content.match(/Page \d of \d/);
+                  numberOfPage = page[0].match(/\d/g)[1];
+                  alert(numberOfPage);
+                  //alert(content);
+              }
+              //parse html into cases, put unparse cases into results array
+              //22 Apr 2015 </a><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">Avian influenza (92): Niger (MA) poultry, HPAI H5N1, OIE 20150422.3314939&lt;\/a&gt;&lt;\/li&gt;\n</a></li><li><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">
+              var results = content.match(/\d\d \w\w\w \d\d\d\d.*?(?=li&gt)/g);
+              //alert(results[0]);
+              //parsed from html
+              //22 Apr 2015 </a><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">Avian influenza (92): Niger (MA) poultry, HPAI H5N1, OIE 20150422.3314939&lt;\/a&gt;&lt;\/
+              
+                  
+                  //parse each cases, get date, case id, archive number, subject, country and city
+                  for (i = 0; i < results.length; i++) {
+                      var date = results[i].match(/\d\d \w\w\w \d\d\d\d/);
+                      var caseID;
+                      if (results[i].match(/id\d+/)){
+                         caseID = results[i].match(/id\d+/)[0];
+                         caseID = caseID.replace('id', '');
+                      }
+                      
+                      var country;
+                      if(results[i].match(/: .*?(?=\()/)){
+                          country = results[i].match(/: .*?(?=\()/)[0];
+                      }
+                      
+                      var stateOrCity;
+                      if(results[i].match(/: .*\(\w+\)/)){
+                          stateOrCity = results[i].match(/: .*\(\w+\)/)[0];
+                      
+                          stateOrCity = stateOrCity.split('(')[1];
+                          stateOrCity = stateOrCity.match(/\w+/);
+                      }
+                      
+                      var subject;
+                      if(results[i].match(/">.*?(?=&lt)/)){
+                          subject = results[i].match(/">.*?(?=&lt)/)[0];
+                          subject = subject.replace('">', '');
+                      }
+                      
+                      
+                      var archiveNumber;
+                      if(results[i].match(/\d+\.\d+/)){
+                          archiveNumber = results[i].match(/\d+\.\d+/);
+                      }
+                      var parsedCase = {date:date, caseID:caseID, country:country, stateOrCity:stateOrCity, subject:subject, archiveNumber:archiveNumber};
+                      console.log('date: ' + parsedCase.date + ',  caseID: ' + parsedCase.caseID + ', Country: ' + parsedCase.country
+                      + ', State or City: ' + parsedCase.stateOrCity + ', Subject: ' + parsedCase.subject + ', Archive Number: ' + parsedCase.archiveNumber);
+                      cases.push(parsedCase);
+                      
+                      
+                  }
+                  //alert(cases.toString);
+
+           
+          } else {
+            var errormsg = '<p>Error: cannot load the page.</p>';
+            container.html(errormsg);
+          }
+        }
+      );
+      
+    }  
+        // filter out some nasties
+  function filterData(data){
+    data = data.replace(/<?\/body[^>]*>/g,'');
+    data = data.replace(/[\r|\n]+/g,'');
+    data = data.replace(/<--[\S\s]*?-->/g,'');
+    data = data.replace(/<noscript[^>]*>[\S\s]*?<\/noscript>/g,'');
+    data = data.replace(/<script[^>]*>[\S\s]*?<\/script>/g,'');
+    data = data.replace(/<script.*\/>/,'');
+    return data;
+  }
+alert('test');
+queryDisease('h5n1');
