@@ -1,0 +1,48 @@
+function parseData() {
+    var url = 'http://gamapserver.who.int/gareports/Default.aspx?ReportNo=2';
+    $.getJSON("http://query.yahooapis.com/v1/public/yql?"+
+                "q=select%20*%20from%20html%20where%20url%3D%22"+
+                encodeURIComponent(url)+
+                "%22&format=xml'&callback=?",
+        // this function gets the data from the successful 
+        // JSON-P call
+        function(data){
+          
+          // if there is data, filter it and render it out
+          if(data.results[0]){
+              //dataset array
+              var countries = [];
+              //alert("got html content");
+              
+              var html_content = data.results[0];
+              //parse the date range from the report
+              
+              var dateRange = html_content.match(/\d\d\/\d\d\/\d\d\d\d to \d\d\/\d\d\/\d\d\d\d/)[0];
+              console.log(dateRange);
+              //console.log(html_content);
+              //get table data with html tags
+              var table = html_content.match(/ILI activity.*?(?=table)/)[0];
+
+              //parse the countries from html table
+ 
+              countries_unparsed = table.match(/">[A-Z]\w.*?((?=No Report)|(?=Sporadic)|(?=Local Outbreak)|(?=No Activity)|(?=Regional Outbreak))/g);
+
+              
+              //create data set array with {country:, cases:}
+              
+              for (i = 0; i < countries_unparsed.length; i++) {
+                  //parse table tag
+                  var countries_parsed = countries_unparsed[i].match(/">\w.*?(?=<\/div)/g);
+                  
+                  //add country and case number to countries array
+                  var country = {country:countries_parsed[0].replace("\">", ""), cases:countries_parsed[countries_parsed.length-1].replace("\">", "")};
+                  countries[countries.length] = country;
+                  
+              }
+            //convert the countries array to json and print it out on console
+            console.log(JSON.stringify(countries));
+              }
+         } )
+}
+
+parseData();
