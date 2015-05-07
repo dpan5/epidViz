@@ -18,12 +18,11 @@ function queryDisease(disease) {
               if (content.match(/Page \d of \d/)) {
                   var page = content.match(/Page \d of \d/);
                   numberOfPage = page[0].match(/\d/g)[1];
-                
+                  //alert(content);
               }
               //parse html into cases, put unparse cases into results array
               //22 Apr 2015 </a><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">Avian influenza (92): Niger (MA) poultry, HPAI H5N1, OIE 20150422.3314939&lt;\/a&gt;&lt;\/li&gt;\n</a></li><li><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">
               var results = content.match(/\d\d \w\w\w \d\d\d\d.*?(?=li&gt)/g);
-              //alert(results[0]);
               //parsed from html
               //22 Apr 2015 </a><a class="\&quot;slink\&quot;" href="\&quot;javascript:;\&quot;" id="\&quot;id3314939\&quot;">Avian influenza (92): Niger (MA) poultry, HPAI H5N1, OIE 20150422.3314939&lt;\/a&gt;&lt;\/
               
@@ -40,6 +39,8 @@ function queryDisease(disease) {
                       var country;
                       if(results[i].match(/: .*?(?=\()/)){
                           country = results[i].match(/: .*?(?=\()/)[0];
+                          country = country.replace(":", "");
+                          country = country.replace(/^\s+|\s+$/g,'');
                       }
                       
                       var stateOrCity;
@@ -62,13 +63,30 @@ function queryDisease(disease) {
                           archiveNumber = results[i].match(/\d+\.\d+/);
                       }
                       var parsedCase = {date:date, caseID:caseID, country:country, stateOrCity:stateOrCity, subject:subject, archiveNumber:archiveNumber};
-                      console.log('date: ' + parsedCase.date + ',  caseID: ' + parsedCase.caseID + ', Country: ' + parsedCase.country
-                      + ', State or City: ' + parsedCase.stateOrCity + ', Subject: ' + parsedCase.subject + ', Archive Number: ' + parsedCase.archiveNumber);
                       cases.push(parsedCase);
                       
                       
                   }
+                  var countries = [];
+                  countries[countries.length] = {country:cases[0].country, cases:1};
+                  for(i = 1; i < cases.length; i++) {
+                     for (j = 0; j < countries.length; j++) {
+                       if(cases[i].country == countries[j].country) {
+                         countries[j] = {country:countries[j].country, cases:countries[j].cases + 1};
+                         //console.log('1i = ' + i + ' j= ' + j + ', '+ JSON.stringify(countries[j]));
+                         break;
+                       }
+                       else if (j == countries.length-1){
+                           countries[countries.length] = {country:cases[i].country, cases:1};
+                       //console.log('2i = ' + i + ' j= ' + j + ', '+ JSON.stringify(countries[j]));
+                       break;
+                       }
+                     }
+                  }
                   
+                var dateRange = cases[cases.length -1].date + ' to ' + cases[0].date
+                console.log(dateRange);
+                console.log(JSON.stringify(countries));
 
            
           } else {
@@ -89,4 +107,5 @@ function queryDisease(disease) {
     data = data.replace(/<script.*\/>/,'');
     return data;
   }
+
 queryDisease('h5n1');
